@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediktor Karata – Duplanje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f4f4f2;
+      --bg-tertiary: #eeede9;
+      --text-primary: #1a1a1a;
+      --text-secondary: #555550;
+      --text-tertiary: #999990;
+      --border-light: rgba(0,0,0,0.10);
+      --border-mid: rgba(0,0,0,0.18);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --red: #b02020;
+      --red-dark: #8a1a1a;
+      --red-soft: rgba(185,40,40,0.10);
+      --red-text: #c93535;
+      --black-card: #1a1a1a;
+      --black-hover: #333333;
+      --green: #2e9e5a;
+      --green-soft: rgba(46,158,90,0.08);
+      --green-border: rgba(46,158,90,0.35);
+      --amber: #c07010;
+      --amber-soft: rgba(192,112,16,0.10);
+      --amber-border: rgba(192,112,16,0.35);
+      --amber-text: #b07010;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1e1e1c;
+        --bg-secondary: #2a2a27;
+        --bg-tertiary: #242420;
+        --text-primary: #f0ede6;
+        --text-secondary: #a09d96;
+        --text-tertiary: #6a6762;
+        --border-light: rgba(255,255,255,0.08);
+        --border-mid: rgba(255,255,255,0.15);
+        --red: #c93535;
+        --red-dark: #a82828;
+        --red-soft: rgba(201,53,53,0.15);
+        --red-text: #e05050;
+        --black-card: #444;
+        --black-hover: #555;
+        --green: #3ab870;
+        --green-soft: rgba(58,184,112,0.10);
+        --green-border: rgba(58,184,112,0.35);
+        --amber: #d08020;
+        --amber-soft: rgba(208,128,32,0.12);
+        --amber-border: rgba(208,128,32,0.35);
+        --amber-text: #c89030;
+      }
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      background: var(--bg-primary);
+      border-radius: var(--radius-xl);
+      border: 0.5px solid var(--border-mid);
+      padding: 1.75rem 1.5rem 2rem;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    }
+
+    h1.title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-tertiary);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .stat-val { font-size: 18px; font-weight: 500; }
+    .stat-val.red   { color: var(--red-text); }
+    .stat-val.green { color: var(--green); }
+    .stat-val.amber { color: var(--amber-text); }
+
+    /* Tabs */
+    .tab-row {
+      display: flex;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 9px 4px;
+      border: none;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .tab-btn:not(:last-child) { border-right: 0.5px solid var(--border-light); }
+
+    /* Panes */
+    .pane { display: none; }
+    .pane.active { display: block; }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 10px;
+    }
+
+    /* Card Slots */
+    .history-display {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+      align-items: center;
+    }
+
+    .card-slot {
+      flex: 1;
+      aspect-ratio: 3/4;
+      max-width: 80px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      position: relative;
+      background: var(--bg-primary);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card-slot.filled-red { background: var(--red); border-color: var(--red-dark); color: #fff; }
+    .card-slot.filled-black { background: var(--black-card); border-color: #000; color: #fff; }
+    .card-slot.empty-slot { border-style: dashed; color: var(--text-tertiary); font-size: 18px; }
+    .card-slot.active-slot { border-color: var(--amber); box-shadow: 0 0 0 2px var(--amber-soft); }
+
+    .slot-num {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: 9px;
+      opacity: 0.55;
+    }
+
+    /* Input buttons */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+      align-items: stretch;
+    }
+
+    .btn-card {
+      flex: 1;
+      padding: 13px 0;
+      border-radius: var(--radius-md);
+      border: 1.5px solid;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.12s, transform 0.1s;
+    }
+
+    .btn-red { background: var(--red); border-color: var(--red-dark); color: #fff; }
+    .btn-red:hover { background: #c42424; }
+    .btn-red:active { transform: scale(0.97); }
+
+    .btn-black { background: var(--black-card); border-color: #000; color: #fff; }
+    .btn-black:hover { background: var(--black-hover); }
+    .btn-black:active { transform: scale(0.97); }
+
+    .btn-clear {
+      padding: 13px 16px;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text-secondary);
+      transition: background 0.12s;
+      font-family: 'DM Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .btn-clear:hover { background: var(--bg-tertiary); }
+
+    /* Predict button */
+    .btn-predict {
+      width: 100%;
+      padding: 13px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--amber);
+      background: var(--amber-soft);
+      color: var(--amber-text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      transition: background 0.12s, transform 0.1s;
+    }
+
+    .btn-predict:hover { background: rgba(192,112,16,0.18); }
+    .btn-predict:active { transform: scale(0.98); }
+    .btn-predict:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+    /* Prediction box */
+    .prediction-box {
+      border: 1.5px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      background: var(--bg-primary);
+      min-height: 118px;
+    }
+
+    .pred-waiting {
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 1.5rem 0;
+    }
+
+    .pred-result { display: flex; align-items: center; gap: 1rem; }
+
+    .big-card {
+      width: 66px;
+      height: 90px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      flex-shrink: 0;
+      border: 2px solid;
+    }
+
+    .big-card.red   { background: var(--red); border-color: var(--red-dark); color: #fff; }
+    .big-card.black { background: var(--black-card); border-color: #111; color: #fff; }
+
+    .pred-info { flex: 1; }
+
+    .pred-color-label { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .pred-color-label.red   { color: var(--red-text); }
+    .pred-color-label.black { color: var(--text-primary); }
+
+    .confidence-bar-wrap {
+      height: 5px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    .confidence-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .confidence-bar.red   { background: var(--red-text); }
+    .confidence-bar.black { background: var(--black-card); }
+
+    .confidence-pct { font-size: 11px; color: var(--text-secondary); }
+
+    .reason-text {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 7px;
+      line-height: 1.5;
+    }
+
+    .signal-row { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+
+    .signal-pill {
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 0.5px solid;
+    }
+
+    .pill-red     { background: var(--red-soft); color: var(--red-text); border-color: rgba(185,40,40,0.28); }
+    .pill-black   { background: rgba(0,0,0,0.06); color: var(--text-secondary); border-color: var(--border-light); }
+    .pill-neutral { background: var(--bg-secondary); color: var(--text-secondary); border-color: var(--border-light); }
+    .pill-amber   { background: var(--amber-soft); color: var(--amber-text); border-color: var(--amber-border); }
+
+    /* Feedback */
+    .feedback-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+
+    .btn-feedback {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: background 0.12s;
+    }
+
+    .btn-hit  { background: var(--green-soft); border-color: var(--green-border); color: #1f7040; }
+    .btn-hit:hover  { background: rgba(46,158,90,0.15); }
+    .btn-miss { background: var(--red-soft); border-color: rgba(185,40,40,0.28); color: var(--red-text); }
+    .btn-miss:hover { background: rgba(185,40,40,0.15); }
+
+    /* Pattern table */
+    .pattern-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .pattern-table th {
+      text-align: left;
+      color: var(--text-tertiary);
+      font-weight: 400;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 6px;
+      border-bottom: 0.5px solid var(--border-light);
+    }
+
+    .pattern-table td {
+      padding: 5px 6px;
+      border-bottom: 0.5px solid var(--border-light);
+      color: var(--text-secondary);
+    }
+
+    .streak-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 500;
+    }
+
+    .streak-r { background: var(--red-soft); color: var(--red-text); }
+    .streak-b { background: rgba(0,0,0,0.07); color: #444; }
+
+    /* Log */
+    .log-entry {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 0.5px solid var(--border-light);
+      font-size: 11px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .mini-card {
+      width: 18px;
+      height: 24px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      flex-shrink: 0;
+    }
+
+    .mini-card.red   { background: var(--red); color: #fff; }
+    .mini-card.black { background: var(--black-card); color: #fff; }
+
+    .log-correct { color: var(--green); }
+    .log-wrong   { color: var(--red-text); }
+
+    .empty-log {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      padding: 1rem 0;
+    }
+
+    /* DB toolbar */
+    .db-toolbar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    .btn-db {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-mid);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-align: center;
+      transition: background 0.12s, color 0.12s;
+      white-space: nowrap;
+    }
+
+    .btn-db:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+    .btn-db.danger {
+      border-color: rgba(185,40,40,0.3);
+      color: var(--red-text);
+    }
+
+    .btn-db.danger:hover { background: var(--red-soft); }
+
+    .db-size {
+      font-size: 9px;
+      color: var(--text-tertiary);
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      body { padding: 0; }
+      .app { border-radius: 0; border-left: none; border-right: none; box-shadow: none; }
+      .card-slot { font-size: 18px; }
+      .db-toolbar { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <h1 class="title">♠ Prediktor Karata ♥</h1>
+  <p class="subtitle">duplanje &middot; crvena / crna</p>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Unos</div>
+      <div class="stat-val amber" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pogoci</div>
+      <div class="stat-val green" id="stat-hits">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Promašaji</div>
+      <div class="stat-val red" id="stat-miss">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tačnost</div>
+      <div class="stat-val green" id="stat-acc">–</div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- DB toolbar -->
+  <div class="db-toolbar">
+    <button class="btn-db" onclick="downloadDB()" title="Sačuvaj bazu kao JSON fajl">⬇ Export baze</button>
+    <button class="btn-db" onclick="document.getElementById('upload-input').click()" title="Učitaj prethodno sačuvanu bazu">⬆ Import baze</button>
+    <button class="btn-db danger" onclick="resetDB()" title="Vrati bazu na početne vrijednosti">↺ Reset</button>
+    <input type="file" id="upload-input" accept=".json" style="display:none" onchange="uploadDB(event)" />
+  </div>
+  <div class="db-size" id="db-size"></div>
+
+  <!-- Tabs -->
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('predict')">Predikcija</button>
+    <button class="tab-btn" onclick="switchTab('patterns')">Šabloni</button>
+    <button class="tab-btn" onclick="switchTab('log')">Istorija</button>
+  </div>
+
+  <!-- PREDICT PANE -->
+  <div id="pane-predict" class="pane active">
+    <p class="section-label">Zadnje 5 karata</p>
+
+    <div class="history-display" id="card-slots">
+      <div class="card-slot empty-slot active-slot" id="slot-0"><span class="slot-num">1</span>?</div>
+      <div class="card-slot empty-slot" id="slot-1"><span class="slot-num">2</span>?</div>
+      <div class="card-slot empty-slot" id="slot-2"><span class="slot-num">3</span>?</div>
+      <div class="card-slot empty-slot" id="slot-3"><span class="slot-num">4</span>?</div>
+      <div class="card-slot empty-slot" id="slot-4"><span class="slot-num">4</span>?</div>
+    </div>
+
+    <div class="input-row">
+      <button class="btn-card btn-red"   onclick="addCard('R')">♥ Crvena</button>
+      <button class="btn-card btn-black" onclick="addCard('B')">♠ Crna</button>
+      <button class="btn-clear" onclick="clearSlots()" title="Obriši sve">✕</button>
+    </div>
+
+    <button class="btn-predict" id="btn-pred" onclick="runPrediction()" disabled>
+      ▶ Predikti sljedeću kartu
+    </button>
+
+    <div class="prediction-box" id="pred-box">
+      <div class="pred-waiting" id="pred-waiting">Unesi zadnjih 5 karata pa pritisni Predikti</div>
+      <div class="pred-result"  id="pred-result" style="display:none;"></div>
+    </div>
+
+    <div class="feedback-row" id="feedback-row" style="display:none;">
+      <button class="btn-feedback btn-hit"  onclick="recordFeedback(true)">✓ Pogodak</button>
+      <button class="btn-feedback btn-miss" onclick="recordFeedback(false)">✗ Promašaj</button>
+    </div>
+  </div>
+
+  <!-- PATTERNS PANE -->
+  <div id="pane-patterns" class="pane">
+    <p class="section-label">Naučeni šabloni (baza + sesija)</p>
+    <table class="pattern-table">
+      <thead>
+        <tr>
+          <th>Sekvenca</th>
+          <th>Predikci</th>
+          <th>Ukupno</th>
+          <th>Pogoci</th>
+          <th>%</th>
+        </tr>
+      </thead>
+      <tbody id="pattern-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- LOG PANE -->
+  <div id="pane-log" class="pane">
+    <p class="section-label">Predikcijski log</p>
+    <div id="log-list"></div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+// ── Seed database ─────────────────────────────────────────────────────────────
+const SEED_DB = {
+  "RRRRR":{R:18,B:7},  "BBBBB":{R:9,B:20},
+  "RRRR": {R:34,B:16}, "BBBB": {R:12,B:31},
+  "RRRB": {R:16,B:22}, "RRBR": {R:15,B:19}, "RBRR": {R:17,B:18}, "BRRR": {R:21,B:14},
+  "BBBR": {R:18,B:14}, "BBRB": {R:16,B:17}, "BRBB": {R:18,B:14}, "RBBB": {R:12,B:21},
+  "RRBB": {R:17,B:20}, "BBRR": {R:20,B:16}, "RBBR": {R:15,B:17}, "BRRB": {R:14,B:18},
+  "RBRB": {R:14,B:21}, "BRBR": {R:19,B:13},
+  "RRR":  {R:58,B:42}, "BBB":  {R:38,B:64},
+  "RRB":  {R:44,B:49}, "RBR":  {R:51,B:41}, "BRR":  {R:53,B:38},
+  "BBR":  {R:47,B:45}, "BRB":  {R:42,B:51}, "RBB":  {R:39,B:53},
+  "RR":   {R:95,B:82}, "BB":   {R:74,B:101},"RB":   {R:88,B:79}, "BR":   {R:82,B:90},
+  "R":    {R:310,B:290},"B":   {R:288,B:315},
+  "RBRBB":{R:7,B:11},  "BRBRR":{R:10,B:6},
+  "RBRRB":{R:9,B:14},  "BRRBB":{R:11,B:8},
+  "RRBBB":{R:8,B:15},  "BBRRR":{R:16,B:7},
+  "RRRBR":{R:12,B:8},  "RRRBB":{R:9,B:14},
+  "RBRBR":{R:8,B:14},  "BRBRB":{R:13,B:9},
+  "RBRBB":{R:7,B:11},  "BRBBB":{R:10,B:17},
+  "RRRBB":{R:9,B:14},  "BBBРР":{R:14,B:9}
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let db = JSON.parse(JSON.stringify(SEED_DB));
+let sessionLog = [];
+let currentSeq = [];
+let lastPred = null;
+let hits = 0, misses = 0, totalPred = 0;
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  const names = ['predict','patterns','log'];
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', names[i] === t)
+  );
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('pane-' + t).classList.add('active');
+  if (t === 'patterns') renderPatterns();
+  if (t === 'log')      renderLog();
+}
+
+// ── Card input ────────────────────────────────────────────────────────────────
+function addCard(color) {
+  if (currentSeq.length >= 5) return;
+  currentSeq.push(color);
+  updateSlots();
+  if (currentSeq.length === 5) {
+    document.getElementById('btn-pred').disabled = false;
+  }
+}
+
+function clearSlots() {
+  currentSeq = [];
+  lastPred = null;
+  document.getElementById('btn-pred').disabled = true;
+  document.getElementById('pred-waiting').style.display = 'block';
+  document.getElementById('pred-waiting').innerHTML = 'Unesi zadnjih 5 karata pa pritisni Predikti';
+  document.getElementById('pred-result').style.display = 'none';
+  document.getElementById('feedback-row').style.display = 'none';
+  updateSlots();
+}
+
+function updateSlots() {
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById('slot-' + i);
+    el.className = 'card-slot';
+    el.innerHTML = '<span class="slot-num">' + (i + 1) + '</span>';
+    if (i < currentSeq.length) {
+      const c = currentSeq[i];
+      el.classList.add(c === 'R' ? 'filled-red' : 'filled-black');
+      el.innerHTML += c === 'R' ? '♥' : '♠';
+    } else {
+      el.classList.add('empty-slot');
+      if (i === currentSeq.length) el.classList.add('active-slot');
+      el.innerHTML += '?';
+    }
+  }
+}
+
+// ── Prediction engine ─────────────────────────────────────────────────────────
+function predict(seq) {
+  // Try longest matching pattern first, fall back to shorter
+  let bestR = 0, bestB = 0, bestKey = null, bestLen = 0;
+  for (let len = seq.length; len >= 1; len--) {
+    const key = seq.slice(-len).join('');
+    if (db[key] && (db[key].R || 0) + (db[key].B || 0) >= 4) {
+      bestR = db[key].R || 0;
+      bestB = db[key].B || 0;
+      bestKey = key;
+      bestLen = len;
+      break;
+    }
+  }
+
+  // Global fallback
+  if (!bestKey) {
+    bestR = Object.values(db).reduce((a,v) => a + (v.R||0), 0);
+    bestB = Object.values(db).reduce((a,v) => a + (v.B||0), 0);
+    bestLen = 0;
+  }
+
+  let adjR = bestR, adjB = bestB;
+
+  // Streak bias
+  const streak = getStreak(seq);
+  if (streak.len >= 4) {
+    if (streak.color === 'R') { adjR *= 0.62; adjB *= 1.38; }
+    else                      { adjB *= 0.62; adjR *= 1.38; }
+  } else if (streak.len === 3) {
+    if (streak.color === 'R') { adjR *= 0.80; adjB *= 1.20; }
+    else                      { adjB *= 0.80; adjR *= 1.20; }
+  }
+
+  // Alternating bias
+  const alt = countAlternating(seq);
+  if (alt >= 4) {
+    if (seq[seq.length - 1] === 'R') { adjR *= 0.72; adjB *= 1.28; }
+    else                              { adjB *= 0.72; adjR *= 1.28; }
+  }
+
+  const tot = adjR + adjB;
+  const pR  = adjR / tot;
+  const pB  = adjB / tot;
+
+  // Build signals
+  const signals = [];
+  if (streak.len >= 3) signals.push({ t: 'Streak ' + streak.len + 'x ' + (streak.color==='R' ? 'crvena' : 'crna'), cls: streak.color==='R' ? 'pill-red' : 'pill-black' });
+  if (alt >= 3)        signals.push({ t: 'Naizmjenično', cls: 'pill-neutral' });
+  if (bestLen >= 4)    signals.push({ t: 'Dugi uzorak', cls: 'pill-amber' });
+  if (bestLen <= 1)    signals.push({ t: 'Kratka baza', cls: 'pill-neutral' });
+  signals.push({ t: 'Dubina ' + bestLen, cls: 'pill-neutral' });
+
+  return { color: pR >= pB ? 'R' : 'B', pR, pB, conf: Math.max(pR, pB), signals, key: bestKey || '–' };
+}
+
+function getStreak(seq) {
+  if (!seq.length) return { len: 0, color: null };
+  const color = seq[seq.length - 1];
+  let len = 0;
+  for (let i = seq.length - 1; i >= 0 && seq[i] === color; i--) len++;
+  return { len, color };
+}
+
+function countAlternating(seq) {
+  let count = 0;
+  for (let i = seq.length - 1; i >= 1; i--) {
+    if (seq[i] !== seq[i-1]) count++; else break;
+  }
+  return count;
+}
+
+// ── Run prediction ────────────────────────────────────────────────────────────
+function runPrediction() {
+  if (currentSeq.length < 5) return;
+  const result = predict(currentSeq);
+  lastPred = { seq: [...currentSeq], pred: result };
+  renderPrediction(result);
+  document.getElementById('feedback-row').style.display = 'flex';
+}
+
+function renderPrediction(r) {
+  const isRed = r.color === 'R';
+  document.getElementById('pred-waiting').style.display = 'none';
+  const box = document.getElementById('pred-result');
+  box.style.display = 'flex';
+  const pct  = Math.round(r.conf * 100);
+  const pills = r.signals.map(s => `<span class="signal-pill ${s.cls}">${s.t}</span>`).join('');
+  box.innerHTML = `
+    <div class="big-card ${isRed ? 'red' : 'black'}">${isRed ? '♥' : '♠'}</div>
+    <div class="pred-info">
+      <div class="pred-color-label ${isRed ? 'red' : 'black'}">${isRed ? 'Crvena' : 'Crna'}</div>
+      <div class="confidence-bar-wrap">
+        <div class="confidence-bar ${isRed ? 'red' : 'black'}" style="width:${pct}%"></div>
+      </div>
+      <div class="confidence-pct">Pouzdanost: ${pct}%</div>
+      <div class="reason-text">
+        Crvena: ${Math.round(r.pR*100)}% &nbsp;|&nbsp; Crna: ${Math.round(r.pB*100)}%
+        &nbsp;|&nbsp; Šablon: <strong>${r.key}</strong>
+      </div>
+      <div class="signal-row">${pills}</div>
+    </div>`;
+}
+
+// ── Feedback & learning ───────────────────────────────────────────────────────
+function recordFeedback(correct) {
+  if (!lastPred) return;
+  const seq    = lastPred.seq;
+  const pred   = lastPred.pred.color;
+  const actual = correct ? pred : (pred === 'R' ? 'B' : 'R');
+
+  // Update DB for all sub-sequences
+  for (let len = 1; len <= 5; len++) {
+    const key = seq.slice(-len).join('');
+    if (!db[key]) db[key] = { R: 0, B: 0 };
+    db[key][actual] = (db[key][actual] || 0) + 1;
+  }
+
+  totalPred++;
+  if (correct) hits++; else misses++;
+  updateStats();
+
+  sessionLog.unshift({ seq: [...seq], pred, actual, correct });
+  saveToLS();
+  updateDBSize();
+
+  // Reset UI
+  document.getElementById('feedback-row').style.display = 'none';
+  document.getElementById('pred-result').style.display  = 'none';
+  const pw = document.getElementById('pred-waiting');
+  pw.style.display = 'block';
+  pw.innerHTML = correct
+    ? '<span style="color:#2e9e5a">✓ Pogodak! Baza ažurirana.</span>'
+    : '<span style="color:#c93535">✗ Promašaj. Baza ažurirana.</span>';
+
+  // Slide window: drop oldest, append actual
+  currentSeq = [...currentSeq.slice(1), actual];
+  document.getElementById('btn-pred').disabled = false;
+  updateSlots();
+  lastPred = null;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('stat-total').textContent = totalPred;
+  document.getElementById('stat-hits').textContent  = hits;
+  document.getElementById('stat-miss').textContent  = misses;
+  document.getElementById('stat-acc').textContent   =
+    totalPred > 0 ? Math.round(hits / totalPred * 100) + '%' : '–';
+}
+
+// ── Patterns tab ──────────────────────────────────────────────────────────────
+function renderPatterns() {
+  const rows = Object.entries(db)
+    .filter(([, v]) => (v.R || 0) + (v.B || 0) >= 5)
+    .sort(([, a], [, b]) => ((b.R||0)+(b.B||0)) - ((a.R||0)+(a.B||0)))
+    .slice(0, 40);
+
+  document.getElementById('pattern-tbody').innerHTML = rows.map(([k, v]) => {
+    const r = v.R||0, b = v.B||0, tot = r + b;
+    const pred = r >= b ? 'Crvena' : 'Crna';
+    const pct  = Math.round(Math.max(r, b) / tot * 100);
+    const seqHtml = k.split('').map(c =>
+      `<span class="mini-card ${c==='R'?'red':'black'}">${c==='R'?'♥':'♠'}</span>`
+    ).join(' ');
+    return `<tr>
+      <td>${seqHtml}</td>
+      <td><span class="streak-badge ${r>=b?'streak-r':'streak-b'}">${pred}</span></td>
+      <td>${tot}</td>
+      <td>${Math.max(r,b)}</td>
+      <td>${pct}%</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Log tab ───────────────────────────────────────────────────────────────────
+function renderLog() {
+  const list = document.getElementById('log-list');
+  if (!sessionLog.length) {
+    list.innerHTML = '<p class="empty-log">Nema unosa još.</p>';
+    return;
+  }
+  list.innerHTML = sessionLog.slice(0, 40).map((e, i) => {
+    const cards = e.seq.map(c =>
+      `<span class="mini-card ${c==='R'?'red':'black'}">${c==='R'?'♥':'♠'}</span>`
+    ).join('');
+    const pCard = `<span class="mini-card ${e.pred==='R'?'red':'black'}">${e.pred==='R'?'♥':'♠'}</span>`;
+    return `<div class="log-entry">
+      <span style="font-size:9px;color:var(--text-tertiary);min-width:18px">${sessionLog.length - i}</span>
+      ${cards}
+      <span style="color:var(--text-tertiary);font-size:10px">→</span>
+      ${pCard}
+      <span class="${e.correct?'log-correct':'log-wrong'}" style="font-size:10px">
+        ${e.correct ? '✓' : '✗'}
+      </span>
+      <span style="font-size:9px;color:var(--text-tertiary)">
+        stvarno: <span class="mini-card ${e.actual==='R'?'red':'black'}">${e.actual==='R'?'♥':'♠'}</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+// ── LocalStorage ──────────────────────────────────────────────────────────────
+const LS_KEY_DB    = 'prediktor_db_v1';
+const LS_KEY_STATS = 'prediktor_stats_v1';
+
+function saveToLS() {
+  try {
+    localStorage.setItem(LS_KEY_DB, JSON.stringify(db));
+    localStorage.setItem(LS_KEY_STATS, JSON.stringify({ hits, misses, totalPred }));
+  } catch(e) { /* storage full – ignore */ }
+}
+
+function loadFromLS() {
+  try {
+    const savedDB = localStorage.getItem(LS_KEY_DB);
+    if (savedDB) db = JSON.parse(savedDB);
+    const savedStats = localStorage.getItem(LS_KEY_STATS);
+    if (savedStats) {
+      const s = JSON.parse(savedStats);
+      hits = s.hits || 0;
+      misses = s.misses || 0;
+      totalPred = s.totalPred || 0;
+    }
+  } catch(e) { /* corrupt data – ignore */ }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, duration = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── DB size label ─────────────────────────────────────────────────────────────
+function updateDBSize() {
+  const count = Object.keys(db).length;
+  const entries = Object.values(db).reduce((a,v) => a + (v.R||0) + (v.B||0), 0);
+  document.getElementById('db-size').textContent =
+    `Baza: ${count} šablona · ${entries} uzoraka · auto-save uključen`;
+}
+
+// ── Download DB ───────────────────────────────────────────────────────────────
+function downloadDB() {
+  const payload = {
+    version: 1,
+    exported: new Date().toISOString(),
+    stats: { hits, misses, totalPred },
+    db
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'prediktor-baza-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Baza preuzeta kao JSON fajl');
+}
+
+// ── Upload DB ─────────────────────────────────────────────────────────────────
+function uploadDB(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Support both raw db object and wrapped export format
+      if (data.db && typeof data.db === 'object') {
+        db = data.db;
+        if (data.stats) {
+          hits = data.stats.hits || 0;
+          misses = data.stats.misses || 0;
+          totalPred = data.stats.totalPred || 0;
+        }
+      } else if (typeof data === 'object' && !Array.isArray(data)) {
+        // Raw db object
+        db = data;
+      } else {
+        throw new Error('Nevalidan format');
+      }
+      saveToLS();
+      updateStats();
+      updateDBSize();
+      showToast('✓ Baza uspješno učitana – ' + Object.keys(db).length + ' šablona');
+    } catch(err) {
+      showToast('✗ Greška: neispravan JSON fajl');
+    }
+    // Reset file input so same file can be re-uploaded
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Reset DB ──────────────────────────────────────────────────────────────────
+function resetDB() {
+  if (!confirm('Resetovati bazu na početne vrijednosti?\nSvi naučeni podaci iz sesija biće izgubljeni.')) return;
+  db = JSON.parse(JSON.stringify(SEED_DB));
+  hits = 0; misses = 0; totalPred = 0;
+  sessionLog = [];
+  saveToLS();
+  updateStats();
+  updateDBSize();
+  showToast('↺ Baza resetovana na seed vrijednosti');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadFromLS();
+updateStats();
+updateSlots();
+updateDBSize();
+</script>
+</body>
+</html>
